@@ -57,11 +57,7 @@ function App() {
         idInstance={idInstance || undefined}
         apiTokenInstance={apiTokenInstance || undefined}
       />
-      <AddChatModal
-        apiUrl={apiUrl as string}
-        idInstance={idInstance as string}
-        apiTokenInstance={apiTokenInstance as string}
-      />
+      <AddChatModal />
     </div>
   );
 }
