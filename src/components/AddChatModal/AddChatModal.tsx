@@ -45,12 +45,6 @@ export default function AddChatModal({ phones, setPhones }: AddChatModalProps) {
     }
   };
 
-  // const handleRemovePhone = (phoneToRemove: string) => {
-  //   const updatedPhones = phones.filter((p) => p !== phoneToRemove);
-  //   setPhones(updatedPhones);
-  //   sessionStorage.setItem("chatPhones", JSON.stringify(updatedPhones));
-  // };
-
   return (
     <dialog id="addChatModal" className="modal">
       <div className="modal-box flex flex-col">
