@@ -1,10 +1,20 @@
+import { useEffect, useState } from "react";
 import AddChatModal from "./components/AddChatModal/AddChatModal";
 import AuthModal from "./components/AuthModal/AuthModal";
 
 function App() {
+  const [phones, setPhones] = useState<string[]>([]);
+
   const apiUrl = sessionStorage.getItem("apiUrl");
   const idInstance = sessionStorage.getItem("idInstance");
   const apiTokenInstance = sessionStorage.getItem("apiTokenInstance");
+
+  useEffect(() => {
+    const storedPhones = sessionStorage.getItem("chatPhones");
+    if (storedPhones) {
+      setPhones(JSON.parse(storedPhones));
+    }
+  }, []);
 
   const addChatModalOpenClick = () => {
     const modal = document.getElementById(
@@ -43,12 +53,11 @@ function App() {
                 Создать новый чат
               </button>
             </li>
-            <li>
-              <a>Chat 1</a>
-            </li>
-            <li>
-              <a>Chat 2</a>
-            </li>
+            {phones &&
+              phones.length > 0 &&
+              phones.map((phone: string) => {
+                return <li>{phone}</li>;
+              })}
           </ul>
         </div>
       </div>
@@ -57,7 +66,7 @@ function App() {
         idInstance={idInstance || undefined}
         apiTokenInstance={apiTokenInstance || undefined}
       />
-      <AddChatModal />
+      <AddChatModal phones={phones} setPhones={setPhones} />
     </div>
   );
 }

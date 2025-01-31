@@ -1,24 +1,21 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-export default function AddChatModal() {
+type AddChatModalProps = {
+  phones: string[];
+  setPhones: (phones: string[]) => void;
+};
+
+export default function AddChatModal({ phones, setPhones }: AddChatModalProps) {
   const [phone, setPhone] = useState("");
-  const [phones, setPhones] = useState<string[]>([]);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    const storedPhones = sessionStorage.getItem("chatPhones");
-    if (storedPhones) {
-      setPhones(JSON.parse(storedPhones));
-    }
-  }, []);
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhone(e.target.value);
-  };
 
   const modal = document.getElementById(
     "addChatModal",
   ) as HTMLDialogElement | null;
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhone(e.target.value);
+  };
 
   const handleClose = () => {
     if (modal) {
