@@ -1,3 +1,5 @@
+import AuthModal from "./components/AuthModal/AuthModal";
+
 function App() {
   return (
     <div className="">
@@ -29,6 +31,7 @@ function App() {
           </ul>
         </div>
       </div>
+      <AuthModal />
     </div>
   );
 }
