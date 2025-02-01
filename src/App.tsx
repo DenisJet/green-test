@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import AddChatModal from "./components/AddChatModal/AddChatModal";
 import AuthModal from "./components/AuthModal/AuthModal";
+import { sendMessage } from "./api/sendMessage";
 
 function App() {
   const [phones, setPhones] = useState<string[]>([]);
   const [activeChat, setActiveChat] = useState("");
+  const [newMessage, setNewMessage] = useState("");
 
   const apiUrl = sessionStorage.getItem("apiUrl");
   const idInstance = sessionStorage.getItem("idInstance");
@@ -32,6 +34,37 @@ function App() {
   //   sessionStorage.setItem("chatPhones", JSON.stringify(updatedPhones));
   // };
 
+  const handleActiveChatChange = (phone: string) => {
+    setActiveChat(phone);
+    setNewMessage("");
+  };
+
+  const handleNewMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value.trim());
+  };
+
+  const handleMessageSend = async () => {
+    if (!apiUrl || !idInstance || !apiTokenInstance) {
+      alert("Необходимо авторизоваться!");
+      return;
+    }
+
+    const result = await sendMessage({
+      apiUrl,
+      idInstance,
+      apiTokenInstance,
+      number: activeChat,
+      message: newMessage,
+    });
+
+    if (result.success) {
+      setNewMessage("");
+      console.log("Сообщение отправлено!");
+    } else {
+      alert(result.error || "Не удалось отправить сообщение.");
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto">
       <div className="drawer md:drawer-open">
@@ -39,14 +72,26 @@ function App() {
         <div className="drawer-content bg-base-300">
           {activeChat && (
             <div className="flex flex-col justify-between h-full">
-              <div className="bg-neutral p-5 text-right">{activeChat}</div>
+              <div className="bg-neutral p-5">{activeChat}</div>
               <div></div>
               <div className="p-5">
-                <input
-                  type="text"
-                  placeholder="Введите сообщение"
-                  className="input w-full"
-                />
+                <label className="input w-full">
+                  <input
+                    type="text"
+                    placeholder="Введите сообщение"
+                    className="grow w-full input-lg"
+                    value={newMessage}
+                    onChange={handleNewMessageChange}
+                  />
+                  {newMessage.trim() && (
+                    <span
+                      onClick={handleMessageSend}
+                      className="badge badge-neutral badge-md cursor-pointer"
+                    >
+                      Отправить
+                    </span>
+                  )}
+                </label>
               </div>
             </div>
           )}
@@ -78,8 +123,9 @@ function App() {
               phones.map((phone: string) => {
                 return (
                   <li
-                    onClick={() => setActiveChat(phone)}
+                    onClick={() => handleActiveChatChange(phone)}
                     className="list-row bg-base-100 mt-1"
+                    key={phone}
                   >
                     <div
                       className={
