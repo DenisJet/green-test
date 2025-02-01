@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
+import { getSettings } from "../../api/getSettings";
 
 export type CredentialsForm = {
   apiUrl: {
@@ -36,29 +37,19 @@ export default function AuthModal({
     const target = e.target as typeof e.target & CredentialsForm;
     const { apiUrl, idInstance, apiTokenInstance } = target;
 
-    try {
-      const response = await fetch(
-        `${apiUrl.value}/waInstance${idInstance.value}/getSettings/${apiTokenInstance.value}`,
-      );
+    const response = await getSettings({
+      apiUrl: apiUrl.value,
+      idInstance: idInstance.value,
+      apiTokenInstance: apiTokenInstance.value,
+    });
 
-      if (!response.ok) {
-        throw new Error("Неверные учетные данные. Попробуйте ещё раз.");
-      }
+    if (response.success) {
+      setIsModalOpen(false);
+      setError(null);
+    }
 
-      const data = await response.json();
-      if (data) {
-        sessionStorage.setItem("apiUrl", apiUrl.value);
-        sessionStorage.setItem("idInstance", idInstance.value);
-        sessionStorage.setItem("apiTokenInstance", apiTokenInstance.value);
-        setIsModalOpen(false);
-        setError(null);
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("Произошла неизвестная ошибка");
-      }
+    if (response.error) {
+      setError(response.error || "Ошибка при авторизации");
     }
   };
 
