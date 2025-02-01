@@ -1,18 +1,14 @@
-type GetChatHistoryProps = {
+type ReceiveNotificationProps = {
   apiUrl: string;
   idInstance: string;
   apiTokenInstance: string;
-  number: string;
-  count: number;
 };
 
-export const getChatHistory = async ({
+export const receiveNotification = async ({
   apiUrl,
   idInstance,
   apiTokenInstance,
-  number,
-  count = 0,
-}: GetChatHistoryProps): Promise<{
+}: ReceiveNotificationProps): Promise<{
   success: boolean;
   error?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,23 +16,13 @@ export const getChatHistory = async ({
 }> => {
   try {
     const response = await fetch(
-      `${apiUrl}/waInstance${idInstance}/getChatHistory/${apiTokenInstance}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          chatId: `${number}@c.us`,
-          count: count,
-        }),
-      },
+      `${apiUrl}/waInstance${idInstance}/receiveNotification/${apiTokenInstance}`,
     );
 
     if (!response.ok) {
       return {
         success: false,
-        error: "Не удалось получить историю сообщений",
+        error: "Не удалось получить уведомление",
       };
     }
 
