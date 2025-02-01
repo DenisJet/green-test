@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import AddChatModal from "./components/AddChatModal/AddChatModal";
 import AuthModal from "./components/AuthModal/AuthModal";
 import { sendMessage } from "./api/sendMessage";
+import { receiveNotification } from "./api/receiveNotification";
+import { deleteNotification } from "./api/deleteNotification";
 
 function App() {
   const [phones, setPhones] = useState<string[]>([]);
@@ -9,6 +11,8 @@ function App() {
   const [newMessage, setNewMessage] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [activeChatHistory, setActiveChatHistory] = useState<any[]>([]);
+  const [isLoadingIncomingMessage, setIsLoadingIncomingMessage] =
+    useState(false);
 
   const apiUrl = sessionStorage.getItem("apiUrl");
   const idInstance = sessionStorage.getItem("idInstance");
@@ -27,6 +31,8 @@ function App() {
     );
     if (storedActiveChatHistory) {
       setActiveChatHistory(JSON.parse(storedActiveChatHistory));
+    } else {
+      setActiveChatHistory([]);
     }
   }, [activeChat]);
 
@@ -69,17 +75,81 @@ function App() {
     });
 
     if (result.success) {
-      const updatedHistory = [...activeChatHistory, newMessage];
+      const updatedHistory = [
+        ...activeChatHistory,
+        { type: "outgoing", message: newMessage },
+      ];
       setActiveChatHistory(updatedHistory);
       sessionStorage.setItem(
         `${activeChat}_chat_history`,
         JSON.stringify(updatedHistory),
       );
-      console.log("Сообщение отправлено!");
+      alert("Сообщение отправлено!");
       setNewMessage("");
     } else {
       alert(result.error || "Не удалось отправить сообщение.");
     }
+  };
+
+  const handleMessageReceive = async () => {
+    setIsLoadingIncomingMessage(true);
+    if (!apiUrl || !idInstance || !apiTokenInstance) {
+      alert("Необходимо авторизоваться!");
+      return;
+    }
+
+    const result = await receiveNotification({
+      apiUrl,
+      idInstance,
+      apiTokenInstance,
+    });
+
+    if (result.success) {
+      const data = result.data;
+      console.log("data", data);
+      if (data === null) {
+        alert("Нет входящих сообщений, попробуйте позже.");
+        setIsLoadingIncomingMessage(false);
+        return;
+      }
+
+      const receptId = result.data.receiptId;
+      const messageType = result.data.body?.messageData?.typeMessage || null;
+      console.log("receiptId", receptId);
+      console.log("messageType", messageType);
+
+      if (messageType === "textMessage") {
+        const updatedHistory = [
+          ...activeChatHistory,
+          {
+            type: "incoming",
+            message: result.data.body.messageData.textMessageData.textMessage,
+          },
+        ];
+        setActiveChatHistory(updatedHistory);
+        sessionStorage.setItem(
+          `${activeChat}_chat_history`,
+          JSON.stringify(updatedHistory),
+        );
+
+        await deleteNotification({
+          apiUrl,
+          idInstance,
+          apiTokenInstance,
+          receptId,
+        });
+      } else {
+        await deleteNotification({
+          apiUrl,
+          idInstance,
+          apiTokenInstance,
+          receptId,
+        });
+
+        handleMessageReceive();
+      }
+    }
+    setIsLoadingIncomingMessage(false);
   };
 
   return (
@@ -94,8 +164,15 @@ function App() {
                 {activeChatHistory &&
                   activeChatHistory.map((message) => {
                     return (
-                      <div key={message} className="chat chat-end">
-                        <div className="chat-bubble">{message}</div>
+                      <div
+                        key={message.message}
+                        className={`chat ${
+                          message.type === "outgoing"
+                            ? "chat-end"
+                            : "chat-start"
+                        }`}
+                      >
+                        <div className="chat-bubble">{message.message}</div>
                       </div>
                     );
                   })}
@@ -135,7 +212,7 @@ function App() {
             className="drawer-overlay"
           ></label>
           <ul className="menu bg-base-200 text-base-content min-h-full w-80 p-4">
-            <li className="mb-2">
+            <li className="mb-3">
               <button
                 onClick={addChatModalOpenClick}
                 type="button"
@@ -150,7 +227,7 @@ function App() {
                 return (
                   <li
                     onClick={() => handleActiveChatChange(phone)}
-                    className="list-row bg-base-100 mt-1"
+                    className="list-row bg-base-100 mb-1"
                     key={phone}
                   >
                     <div
@@ -164,6 +241,21 @@ function App() {
                   </li>
                 );
               })}
+            {activeChat && (
+              <li className="mt-auto mb-0">
+                <button
+                  onClick={handleMessageReceive}
+                  type="button"
+                  className="btn btn-neutral"
+                >
+                  {isLoadingIncomingMessage ? (
+                    <span className="loading loading-spinner"></span>
+                  ) : (
+                    "Проверить входящие сообщения"
+                  )}
+                </button>
+              </li>
+            )}
           </ul>
         </div>
       </div>
