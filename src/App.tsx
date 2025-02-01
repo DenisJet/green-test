@@ -7,6 +7,8 @@ function App() {
   const [phones, setPhones] = useState<string[]>([]);
   const [activeChat, setActiveChat] = useState("");
   const [newMessage, setNewMessage] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [activeChatHistory, setActiveChatHistory] = useState<any[]>([]);
 
   const apiUrl = sessionStorage.getItem("apiUrl");
   const idInstance = sessionStorage.getItem("idInstance");
@@ -18,6 +20,15 @@ function App() {
       setPhones(JSON.parse(storedPhones));
     }
   }, []);
+
+  useEffect(() => {
+    const storedActiveChatHistory = sessionStorage.getItem(
+      `${activeChat}_chat_history`,
+    );
+    if (storedActiveChatHistory) {
+      setActiveChatHistory(JSON.parse(storedActiveChatHistory));
+    }
+  }, [activeChat]);
 
   const addChatModalOpenClick = () => {
     const modal = document.getElementById(
@@ -58,8 +69,14 @@ function App() {
     });
 
     if (result.success) {
-      setNewMessage("");
+      const updatedHistory = [...activeChatHistory, newMessage];
+      setActiveChatHistory(updatedHistory);
+      sessionStorage.setItem(
+        `${activeChat}_chat_history`,
+        JSON.stringify(updatedHistory),
+      );
       console.log("Сообщение отправлено!");
+      setNewMessage("");
     } else {
       alert(result.error || "Не удалось отправить сообщение.");
     }
@@ -69,11 +86,20 @@ function App() {
     <div className="max-w-5xl mx-auto">
       <div className="drawer md:drawer-open">
         <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
-        <div className="drawer-content bg-base-300">
+        <div className="drawer-content bg-neutral">
           {activeChat && (
             <div className="flex flex-col justify-between h-full">
-              <div className="bg-neutral p-5">{activeChat}</div>
-              <div></div>
+              <div className="bg-base-200 p-5">{activeChat}</div>
+              <div className="mt-auto mb-0">
+                {activeChatHistory &&
+                  activeChatHistory.map((message) => {
+                    return (
+                      <div key={message} className="chat chat-end">
+                        <div className="chat-bubble">{message}</div>
+                      </div>
+                    );
+                  })}
+              </div>
               <div className="p-5">
                 <label className="input w-full">
                   <input
