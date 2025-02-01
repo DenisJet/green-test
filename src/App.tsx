@@ -33,12 +33,22 @@ function App() {
   // };
 
   return (
-    <div className="">
+    <div className="max-w-5xl mx-auto">
       <div className="drawer md:drawer-open">
         <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
-        <div className="drawer-content">
+        <div className="drawer-content bg-base-300">
           {activeChat && (
-            <div className="bg-neutral p-5 text-right">{activeChat}</div>
+            <div className="flex flex-col justify-between h-full">
+              <div className="bg-neutral p-5 text-right">{activeChat}</div>
+              <div></div>
+              <div className="p-5">
+                <input
+                  type="text"
+                  placeholder="Введите сообщение"
+                  className="input w-full"
+                />
+              </div>
+            </div>
           )}
           <label
             htmlFor="my-drawer-2"
