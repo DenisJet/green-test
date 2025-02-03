@@ -18,12 +18,13 @@ function App() {
   const idInstance = sessionStorage.getItem("idInstance");
   const apiTokenInstance = sessionStorage.getItem("apiTokenInstance");
 
+  const storedPhones = sessionStorage.getItem("chatPhones");
+
   useEffect(() => {
-    const storedPhones = sessionStorage.getItem("chatPhones");
     if (storedPhones) {
       setPhones(JSON.parse(storedPhones));
     }
-  }, []);
+  }, [storedPhones]);
 
   useEffect(() => {
     const storedActiveChatHistory = sessionStorage.getItem(
@@ -37,6 +38,14 @@ function App() {
   }, [activeChat]);
 
   const addChatModalOpenClick = () => {
+    const parsedPhones = storedPhones ? JSON.parse(storedPhones) : [];
+    if (parsedPhones.length > 0) {
+      alert(
+        "В данной версии приложения можно создать только один активный чат.",
+      );
+      return;
+    }
+
     const modal = document.getElementById(
       "addChatModal",
     ) as HTMLDialogElement | null;
@@ -44,12 +53,6 @@ function App() {
       modal.showModal();
     }
   };
-
-  // const handleRemovePhone = (phoneToRemove: string) => {
-  //   const updatedPhones = phones.filter((p) => p !== phoneToRemove);
-  //   setPhones(updatedPhones);
-  //   sessionStorage.setItem("chatPhones", JSON.stringify(updatedPhones));
-  // };
 
   const handleActiveChatChange = (phone: string) => {
     setActiveChat(phone);
@@ -152,6 +155,19 @@ function App() {
     setIsLoadingIncomingMessage(false);
   };
 
+  const deleteChatModal = document.getElementById(
+    "delete_chat_modal",
+  ) as HTMLDialogElement | null;
+
+  const handleRemoveChat = (chatToRemove: string) => {
+    const updatedPhones = phones.filter((p) => p !== chatToRemove);
+    setPhones(updatedPhones);
+    sessionStorage.setItem("chatPhones", JSON.stringify(updatedPhones));
+    sessionStorage.removeItem(`${chatToRemove}_chat_history`);
+    deleteChatModal?.close();
+    setActiveChat("");
+  };
+
   return (
     <div className="max-w-5xl mx-auto">
       <div className="drawer md:drawer-open">
@@ -237,6 +253,12 @@ function App() {
                     >
                       <img className="size-10 rounded-box" src="/user.svg" />
                       <div>{phone}</div>
+                      <button
+                        className="btn"
+                        onClick={() => deleteChatModal?.showModal()}
+                      >
+                        Удалить
+                      </button>
                     </div>
                   </li>
                 );
@@ -265,6 +287,22 @@ function App() {
         apiTokenInstance={apiTokenInstance || undefined}
       />
       <AddChatModal phones={phones} setPhones={setPhones} />
+      <dialog id="delete_chat_modal" className="modal">
+        <div className="modal-box">
+          <p className="py-4">Вы действительно хотите удалить чат?</p>
+          <div className="modal-action">
+            <button
+              onClick={() => handleRemoveChat(activeChat)}
+              className="btn"
+            >
+              Удалить
+            </button>
+            <form method="dialog">
+              <button className="btn">Закрыть</button>
+            </form>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }
