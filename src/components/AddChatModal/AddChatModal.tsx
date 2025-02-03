@@ -27,7 +27,7 @@ export default function AddChatModal({ phones, setPhones }: AddChatModalProps) {
 
   const handleOkClick = () => {
     setError("");
-    const isValid = /^\d{11}$/.test(phone);
+    const isValid = /^7\d{10}$/.test(phone);
 
     if (isValid) {
       const updatedPhones = [...phones, phone];
@@ -39,9 +39,7 @@ export default function AddChatModal({ phones, setPhones }: AddChatModalProps) {
         setPhone("");
       }
     } else {
-      setError(
-        "Телефон должен состоять из цифр и быть не длиннее 11 символов ",
-      );
+      setError("Телефон должен состоять из 11 цифр и начинаться с цифры 7");
     }
   };
 
@@ -61,7 +59,7 @@ export default function AddChatModal({ phones, setPhones }: AddChatModalProps) {
         </h3>
         {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
         <label className="floating-label w-full">
-          <span>Номер телефона без знаков</span>
+          <span>Номер телефона без знаков, в формате 7xxxxxxxxxx</span>
           <input
             type="text"
             placeholder="Номер телефона без знаков"
