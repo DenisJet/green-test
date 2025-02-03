@@ -13,16 +13,21 @@ export type CredentialsForm = {
   };
 };
 
+type AuthModalProps = {
+  apiUrl?: string;
+  idInstance?: string;
+  apiTokenInstance?: string;
+  isModalOpen: boolean;
+  setIsModalOpen: (flag: boolean) => void;
+};
+
 export default function AuthModal({
   apiUrl,
   idInstance,
   apiTokenInstance,
-}: {
-  apiUrl?: string;
-  idInstance?: string;
-  apiTokenInstance?: string;
-}) {
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  isModalOpen,
+  setIsModalOpen,
+}: AuthModalProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

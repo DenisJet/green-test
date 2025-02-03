@@ -6,6 +6,7 @@ import { receiveNotification } from "./api/receiveNotification";
 import { deleteNotification } from "./api/deleteNotification";
 
 function App() {
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
   const [phones, setPhones] = useState<string[]>([]);
   const [activeChat, setActiveChat] = useState("");
   const [newMessage, setNewMessage] = useState("");
@@ -65,7 +66,7 @@ function App() {
 
   const handleMessageSend = async () => {
     if (!apiUrl || !idInstance || !apiTokenInstance) {
-      alert("Необходимо авторизоваться!");
+      setIsAuthModalOpen(true);
       return;
     }
 
@@ -87,7 +88,6 @@ function App() {
         `${activeChat}_chat_history`,
         JSON.stringify(updatedHistory),
       );
-      alert("Сообщение отправлено!");
       setNewMessage("");
     } else {
       alert(result.error || "Не удалось отправить сообщение.");
@@ -96,8 +96,9 @@ function App() {
 
   const handleMessageReceive = async () => {
     setIsLoadingIncomingMessage(true);
+
     if (!apiUrl || !idInstance || !apiTokenInstance) {
-      alert("Необходимо авторизоваться!");
+      setIsAuthModalOpen(true);
       return;
     }
 
@@ -109,7 +110,7 @@ function App() {
 
     if (result.success) {
       const data = result.data;
-      console.log("data", data);
+
       if (data === null) {
         alert("Нет входящих сообщений, попробуйте позже.");
         setIsLoadingIncomingMessage(false);
@@ -118,8 +119,6 @@ function App() {
 
       const receptId = result.data.receiptId;
       const messageType = result.data.body?.messageData?.typeMessage || null;
-      console.log("receiptId", receptId);
-      console.log("messageType", messageType);
 
       if (messageType === "textMessage") {
         const updatedHistory = [
@@ -155,8 +154,8 @@ function App() {
     setIsLoadingIncomingMessage(false);
   };
 
-  const deleteChatModal = document.getElementById(
-    "delete_chat_modal",
+  const removeChatModal = document.getElementById(
+    "remove_chat_modal",
   ) as HTMLDialogElement | null;
 
   const handleRemoveChat = (chatToRemove: string) => {
@@ -164,7 +163,7 @@ function App() {
     setPhones(updatedPhones);
     sessionStorage.setItem("chatPhones", JSON.stringify(updatedPhones));
     sessionStorage.removeItem(`${chatToRemove}_chat_history`);
-    deleteChatModal?.close();
+    removeChatModal?.close();
     setActiveChat("");
   };
 
@@ -254,8 +253,8 @@ function App() {
                       <img className="size-10 rounded-box" src="/user.svg" />
                       <div>{phone}</div>
                       <button
-                        className="btn"
-                        onClick={() => deleteChatModal?.showModal()}
+                        className="btn btn-xs"
+                        onClick={() => removeChatModal?.showModal()}
                       >
                         Удалить
                       </button>
@@ -285,11 +284,15 @@ function App() {
         apiUrl={apiUrl || undefined}
         idInstance={idInstance || undefined}
         apiTokenInstance={apiTokenInstance || undefined}
+        isModalOpen={isAuthModalOpen}
+        setIsModalOpen={setIsAuthModalOpen}
       />
       <AddChatModal phones={phones} setPhones={setPhones} />
-      <dialog id="delete_chat_modal" className="modal">
+      <dialog id="remove_chat_modal" className="modal">
         <div className="modal-box">
-          <p className="py-4">Вы действительно хотите удалить чат?</p>
+          <p className="py-4">
+            Вы действительно хотите удалить чат и историю сообщений?
+          </p>
           <div className="modal-action">
             <button
               onClick={() => handleRemoveChat(activeChat)}
@@ -298,7 +301,7 @@ function App() {
               Удалить
             </button>
             <form method="dialog">
-              <button className="btn">Закрыть</button>
+              <button className="btn">Отмена</button>
             </form>
           </div>
         </div>
